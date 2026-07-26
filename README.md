@@ -1,3 +1,5 @@
+> **Fork notice** — this is the Bellui fork of [`fyne-io/systray`](https://github.com/fyne-io/systray), rebranded to the module path `github.com/belluikit/systray`. Upstream copyright and the Apache-2.0 license are retained in full; see `LICENSE`. Sync upstream via the `upstream` git remote.
+
 # Systray
 
 systray is a cross-platform Go library to place an icon and menu in the notification area.
@@ -15,8 +17,8 @@ removing the GTK dependency and support for legacy linux system tray.
 ```go
 package main
 
-import "fyne.io/systray"
-import "fyne.io/systray/example/icon"
+import "github.com/belluikit/systray"
+import "github.com/belluikit/systray/example/icon"
 
 func main() {
 	systray.Run(onReady, onExit)
@@ -37,16 +39,16 @@ func onExit() {
 }
 ```
 
-### Running in a Fyne app
+### Running in a Bellui app
 
 This repository is designed to allow any toolkit to integrate system tray without any additional dependencies.
-It is maintained by the Fyne team, but if you are using Fyne there is an even easier to use API in the main repository that wraps this project.
+Upstream is maintained by the Fyne team. If you are using Bellui there is an easier API in the main Bellui repository that wraps this project.
 
-In your app you can use a standard `fyne.Menu` structure and pass it to `SetSystemTrayMenu` when your app is a desktop app, as follows:
+In your app you can use a standard `bellui.Menu` structure and pass it to `SetSystemTrayMenu` when your app is a desktop app, as follows:
 
 ```go
-	menu := fyne.NewMenu("MyApp",
-		fyne.NewMenuItem("Show", func() {
+	menu := bellui.NewMenu("MyApp",
+		bellui.NewMenuItem("Show", func() {
 			log.Println("Tapped show")
 		}))
 
@@ -65,7 +67,7 @@ For this reason there is another entry point `RunWithExternalLoop`.
 This function of the library returns a start and end function that should be called
 when the application has started and will end, to loop in appropriate features.
 
-See [full API](https://pkg.go.dev/fyne.io/systray?tab=doc) as well as [CHANGELOG](https://github.com/fyne-io/systray/tree/master/CHANGELOG.md).
+See [full API](https://pkg.go.dev/github.com/belluikit/systray?tab=doc) as well as [CHANGELOG](https://github.com/fyne-io/systray/tree/master/CHANGELOG.md).
 
 Note: this package requires cgo, so make sure you set `CGO_ENABLED=1` before building.
 
@@ -101,7 +103,7 @@ Search for "StatusNotifierItems XEmbedded" in your package manager.
 
 ### Windows
 
-* To avoid opening a console at application startup, use "fyne package" for your app or manually use these compile flags:
+* To avoid opening a console at application startup, use "bellui package" for your app or manually use these compile flags:
 
 ```sh
 go build -ldflags -H=windowsgui
@@ -109,7 +111,7 @@ go build -ldflags -H=windowsgui
 
 ### macOS
 
-On macOS, you will need to create an application bundle to wrap the binary; simply use "fyne package" or add folders with the following minimal structure and assets:
+On macOS, you will need to create an application bundle to wrap the binary; simply use "bellui package" or add folders with the following minimal structure and assets:
 
 ```
 SystrayApp.app/
