@@ -11,3 +11,14 @@ out.txt
 .vs
 on_exit*.txt
 .vscode
+
+# OS and editor files, Go test and profiling output
+.DS_Store
+Thumbs.db
+.idea/
+*.test
+*.out
+*.prof
+coverage.out
+coverage.html
+coverage.txt
