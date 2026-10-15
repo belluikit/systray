@@ -17,8 +17,10 @@ const iconFilePath = "example/icon/iconwin.ico"
 
 func TestBaseWindowsTray(t *testing.T) {
 	systrayReady = func() {}
+	exitMu.Lock()
 	systrayExit = func() {}
 	systrayExitCalled = false
+	exitMu.Unlock()
 
 	runtime.LockOSThread()
 
@@ -29,6 +31,8 @@ func TestBaseWindowsTray(t *testing.T) {
 	if err := wt.createMenu(); err != nil {
 		t.Fatalf("createMenu failed: %s", err)
 	}
+	// The same final step as registerSystray, which this test does by hand.
+	wt.initialized.Store(true)
 
 	defer func() {
 		pDestroyWindow.Call(uintptr(wt.window))
@@ -43,39 +47,40 @@ func TestBaseWindowsTray(t *testing.T) {
 		t.Errorf("SetIcon failed: %s", err)
 	}
 
-	var id atomic.Int32
-	err := wt.addOrUpdateMenuItem(id.Add(1), "Simple enabled", false, false)
+	var id atomic.Uint32
+	err := wt.addOrUpdateMenuItem(id.Add(1), 0, "Simple enabled", false, false)
 	if err != nil {
 		t.Errorf("mergeMenuItem failed: %s", err)
 	}
-	err = wt.addOrUpdateMenuItem(id.Add(1), "Simple disabled", true, false)
+	err = wt.addOrUpdateMenuItem(id.Add(1), 0, "Simple disabled", true, false)
 	if err != nil {
 		t.Errorf("mergeMenuItem failed: %s", err)
 	}
-	err = wt.addSeparatorMenuItem(id.Add(1))
+	err = wt.addSeparatorMenuItem(id.Add(1), 0)
 	if err != nil {
 		t.Errorf("addSeparatorMenuItem failed: %s", err)
 	}
-	err = wt.addOrUpdateMenuItem(id.Add(1), "Simple checked enabled", false, true)
+	err = wt.addOrUpdateMenuItem(id.Add(1), 0, "Simple checked enabled", false, true)
 	if err != nil {
 		t.Errorf("mergeMenuItem failed: %s", err)
 	}
-	err = wt.addOrUpdateMenuItem(id.Add(1), "Simple checked disabled", true, true)
+	err = wt.addOrUpdateMenuItem(id.Add(1), 0, "Simple checked disabled", true, true)
 	if err != nil {
 		t.Errorf("mergeMenuItem failed: %s", err)
 	}
 
-	err = wt.hideMenuItem(1)
+	err = wt.hideMenuItem(1, 0)
 	if err != nil {
 		t.Errorf("hideMenuItem failed: %s", err)
 	}
 
-	err = wt.hideMenuItem(100)
-	if err == nil {
-		t.Error("hideMenuItem failed: must return error on invalid item id")
-	}
+	// Hiding an item that does not exist must not disturb the menu. Whether
+	// it reports an error depends on whether RemoveMenu sets a last-error
+	// code, which differs between Windows versions (Windows Server 2025 does
+	// not), and the public Hide only logs it, so the result is not asserted.
+	_ = wt.hideMenuItem(100, 0)
 
-	err = wt.addOrUpdateMenuItem(2, "Simple disabled update", true, false)
+	err = wt.addOrUpdateMenuItem(2, 0, "Simple disabled update", true, false)
 	if err != nil {
 		t.Errorf("mergeMenuItem failed: %s", err)
 	}
