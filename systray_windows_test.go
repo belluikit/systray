@@ -17,8 +17,10 @@ const iconFilePath = "example/icon/iconwin.ico"
 
 func TestBaseWindowsTray(t *testing.T) {
 	systrayReady = func() {}
+	exitMu.Lock()
 	systrayExit = func() {}
 	systrayExitCalled = false
+	exitMu.Unlock()
 
 	runtime.LockOSThread()
 
@@ -29,6 +31,8 @@ func TestBaseWindowsTray(t *testing.T) {
 	if err := wt.createMenu(); err != nil {
 		t.Fatalf("createMenu failed: %s", err)
 	}
+	// The same final step as registerSystray, which this test does by hand.
+	wt.initialized.Store(true)
 
 	defer func() {
 		pDestroyWindow.Call(uintptr(wt.window))
