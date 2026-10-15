@@ -13,8 +13,11 @@ var (
 	systrayReady, systrayExit func()
 	tappedLeft, tappedRight   func()
 	systrayExitCalled         bool
-	menuItems                 = make(map[uint32]*MenuItem)
-	menuItemsLock             sync.RWMutex
+	// exitMu guards systrayExit and systrayExitCalled: Quit and the platform's
+	// own close handling can both reach runSystrayExit, on different goroutines.
+	exitMu        sync.Mutex
+	menuItems     = make(map[uint32]*MenuItem)
+	menuItemsLock sync.RWMutex
 
 	initialMenuBuilt sync.WaitGroup
 	currentID        atomic.Uint32
@@ -27,10 +30,16 @@ var (
 // This helper function allows us to call systrayExit only once,
 // without accidentally calling it twice in the same lifetime.
 func runSystrayExit() {
-	if !systrayExitCalled {
-		systrayExitCalled = true
-		systrayExit()
+	exitMu.Lock()
+	if systrayExitCalled {
+		exitMu.Unlock()
+		return
 	}
+	systrayExitCalled = true
+	onExit := systrayExit
+	exitMu.Unlock()
+	// Called outside the lock, so onExit may itself call Quit.
+	onExit()
 }
 
 func init() {
@@ -126,8 +135,10 @@ func Register(onReady func(), onExit func()) {
 	if onExit == nil {
 		onExit = func() {}
 	}
+	exitMu.Lock()
 	systrayExit = onExit
 	systrayExitCalled = false
+	exitMu.Unlock()
 	registerSystray()
 }
 
