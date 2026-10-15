@@ -1,0 +1,17 @@
+belluikit/systray
+=================
+
+This product is a modified version of fyne-io/systray
+(https://github.com/fyne-io/systray), which is itself a fork of
+getlantern/systray (https://github.com/getlantern/systray). Both are licensed
+under the Apache License, Version 2.0; the full text is in LICENSE.
+
+Modifications made in this fork (per Section 4(b) of the Apache License):
+
+- 2026: the Go module path was changed from fyne.io/systray to
+  github.com/belluikit/systray, and the import paths in systray_unix.go,
+  systray_menu_unix.go, systray_notifier_unix.go and example/main.go were
+  updated to match. README.md was edited to describe the fork.
+
+The fork is maintained for Bellui (https://bellui.com). Copyright in the
+original files remains with their respective authors.
