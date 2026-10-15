@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Each OS has its own tray backend: D-Bus StatusNotifierItem on Linux,
+        # Objective-C (cgo) on macOS, Win32 on Windows.
+        os: [ubuntu-24.04, macos-15, windows-2025]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+
+      - name: Formatting
+        if: runner.os == 'Linux'
+        # internal/generated is produced by dbus-codegen-go and kept as generated.
+        run: |
+          unformatted=$(gofmt -l . | grep -v '^internal/generated/' || true)
+          if [ -n "$unformatted" ]; then
+            echo "::error::gofmt needed on:"; echo "$unformatted"; exit 1
+          fi
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Build
+        run: go build ./...
+
+      - name: Test
+        run: go test -race -count=1 ./...
