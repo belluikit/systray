@@ -39,6 +39,20 @@ jobs:
             echo "::error::gofmt needed on:"; echo "$unformatted"; exit 1
           fi
 
+      - name: D-Bus stays out of non-D-Bus platforms
+        if: runner.os == 'Linux'
+        # Go does not treat a _unix file suffix as a build constraint, so a D-Bus
+        # file without a //go:build line silently pulls godbus into every build.
+        run: |
+          for os in darwin windows android; do
+            deps=$(CGO_ENABLED=1 GOOS=$os go list -deps .)
+            grep -qx 'github.com/belluikit/systray' <<<"$deps" || { echo "::error::go list for $os did not list the package"; exit 1; }
+            if grep godbus <<<"$deps"; then
+              echo "::error::$os build depends on godbus"; exit 1
+            fi
+            echo "$os: no godbus"
+          done
+
       - name: Vet
         run: go vet ./...
 
